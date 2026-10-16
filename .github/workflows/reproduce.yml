@@ -1,0 +1,24 @@
+# Re-runs the analysis from the raw data and fails if the committed results
+# (report, findings, dashboard) don't match. Keeps the published numbers honest.
+name: Reproducible
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python scripts/analysis.py
+      - run: python scripts/build_dashboard.py
+      - name: Committed results match a fresh run
+        run: git diff --exit-code -- reports/ index.html
